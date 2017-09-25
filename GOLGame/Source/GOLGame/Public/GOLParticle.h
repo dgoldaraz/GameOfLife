@@ -56,6 +56,9 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Particle)
 	class UStaticMeshComponent* ParticleMesh;
 
+	//This function Scales the Mesh of the particle by Size
+	void ScaleParticle(float Size);
+
 private:
 
 	//Gather all the resources and sets any intial values
@@ -73,7 +76,6 @@ private:
 	//Current State of the particle
 	UPROPERTY(EditAnywhere, Category = Particle)
 	EParticleState CurrentState = EParticleState::Dead;
-
 
 	//Saved state that will be push on every iteration, contains which is the next state of the particle
 	EParticleState NextState = EParticleState::Dead;

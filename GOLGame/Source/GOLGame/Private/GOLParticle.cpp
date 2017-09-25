@@ -24,6 +24,8 @@ void AGOLParticle::BeginPlay()
 	SetMaterialForState();
 }
 
+
+
 void AGOLParticle::Initialize()
 {
 	// Structure to hold one-time initialization
@@ -93,4 +95,9 @@ void AGOLParticle::SetMaterialForState()
 		break;
 	}
 	}
+}
+
+void AGOLParticle::ScaleParticle(float Size)
+{
+	ParticleMesh->SetRelativeScale3D(FVector(Size, Size, 0.25f));
 }
