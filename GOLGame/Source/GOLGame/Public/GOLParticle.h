@@ -8,6 +8,8 @@
 	Game Of Life Particle, will store the current state in game and notify all its neighbours about it
 */
 
+class AGOLSimulator;
+
 // Enum for different states
 UENUM(BlueprintType)
 enum class EParticleState : uint8
@@ -37,9 +39,7 @@ public:
 	
 	//Get/Set State
 	EParticleState GetCurrentState() { return CurrentState; }
-	EParticleState GetNextState() { return NextState; }
-	void SaveNexState(EParticleState NewState);
-	void PushNewState();
+	void SetSimulator(AGOLSimulator* Sim);
 
 
 	UPROPERTY(EditAnywhere, Category = "Game Of Life")
@@ -59,6 +59,10 @@ public:
 	//This function Scales the Mesh of the particle by Size
 	void ScaleParticle(float Size);
 
+	//Set Current State on the Particle
+	void SetState(EParticleState NewState);
+
+	void SetCoordinates(int R, int C);
 private:
 
 	//Gather all the resources and sets any intial values
@@ -66,8 +70,6 @@ private:
 
 	//Select the best material for the Mesh based on the state
 	void SetMaterialForState();
-
-	void SetState(EParticleState NewState);
 
 	//Current Row/Column
 	int Row = 0;
@@ -77,6 +79,5 @@ private:
 	UPROPERTY(EditAnywhere, Category = Particle)
 	EParticleState CurrentState = EParticleState::Dead;
 
-	//Saved state that will be push on every iteration, contains which is the next state of the particle
-	EParticleState NextState = EParticleState::Dead;
+	AGOLSimulator* Simulator = nullptr;
 };

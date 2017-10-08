@@ -5,6 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "GOLSimulator.generated.h"
 
+class AGOLParticle;
+
 UCLASS()
 class GOLGAME_API AGOLSimulator : public AActor
 {
@@ -42,7 +44,21 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Simulator")
 	float ParticleSize = 10.0f;
 
+	// Percentage to decide the posibility to set a particle active on creation
+	UPROPERTY(EditAnywhere, Category = "Simulator", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
+	float CreationParticleActivePer= 0.3;
+
+	AGOLParticle* GetParticle(int Row, int Column);
+
 private:
+
+	//Check the Neighbours and particle to decide it's state
+	void ResolveParticle(const AGOLParticle* Particle);
+
+	//Main function that perform the GOL Simulation
+	void Iterate();
+
+	void SwapBuffers();
 
 	/** Dummy root component */
 	UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -52,13 +68,26 @@ private:
 	UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UTextRenderComponent* IterarionText;
 
-	//Main function that perform the GOL Simulation
-	void Iterate();
-
 	//Tick accumulate time
 	float AccumulateTime = 0.0f;
 
 	//Count of iterations in the simulation
 	int NumberIterations = 0;
+
+	//Array with all the particles created
+	TArray<AGOLParticle*> Particles;
+
+	//Primary Buffer for Alive Particles
+	TArray<AGOLParticle*> PrimaryBuffer;
+
+	//Secondary Buffer for Alive Particles
+	TArray<AGOLParticle*> SecondaryBuffer;
+
+	//Flag to choose Buffer
+	bool bUsePrimaryBuffer = true;
+
+	//TODO: Remove this fixed size, get correct size from Mesh?
+	//Particle Fixed Size
+	float ParticleMeshSize = 100.0f;
 
 };

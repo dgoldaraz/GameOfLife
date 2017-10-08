@@ -24,18 +24,16 @@ void AGOLParticle::BeginPlay()
 	SetMaterialForState();
 }
 
-
-
 void AGOLParticle::Initialize()
 {
 	// Structure to hold one-time initialization
 	struct FConstructorStatics
 	{
-		ConstructorHelpers::FObjectFinderOptional<UStaticMesh> PlaneMesh;
+		ConstructorHelpers::FObjectFinderOptional<UStaticMesh> ParticleMesh;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> AliveMaterial;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> DeadMaterial;
 		FConstructorStatics()
-			: PlaneMesh(TEXT("/Game/Puzzle/Meshes/PuzzleCube.PuzzleCube"))
+			: ParticleMesh(TEXT("/Game/Puzzle/Meshes/ParticleSphere.ParticleSphere"))
 			, AliveMaterial(TEXT("/Game/Puzzle/Meshes/AliveMaterial.AliveMaterial"))
 			, DeadMaterial(TEXT("/Game/Puzzle/Meshes/DeadMaterial.DeadMaterial"))
 		{
@@ -49,11 +47,11 @@ void AGOLParticle::Initialize()
 
 	// Create static mesh component
 	ParticleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ParticleMesh0"));
-	ParticleMesh->SetStaticMesh(ConstructorStatics.PlaneMesh.Get());
+	ParticleMesh->SetStaticMesh(ConstructorStatics.ParticleMesh.Get());
 	AliveMaterial = ConstructorStatics.AliveMaterial.Get();
 	DeadMaterial = ConstructorStatics.DeadMaterial.Get();
 	SetMaterialForState();
-	ParticleMesh->SetRelativeScale3D(FVector(1.f, 1.f, 0.25f));
+	ParticleMesh->SetRelativeScale3D(FVector(1.f, 1.f, 1.0f));
 	ParticleMesh->SetRelativeLocation(FVector(0.f, 0.f, 25.f));
 	ParticleMesh->SetupAttachment(DummyRoot);
 	
@@ -66,18 +64,6 @@ void AGOLParticle::SetState(EParticleState NewState)
 		CurrentState = NewState;
 		SetMaterialForState();
 	}
-}
-
-void AGOLParticle::SaveNexState(EParticleState NewState)
-{
-	NextState = NewState;
-}
-
-void AGOLParticle::PushNewState()
-{
-	//Push New State 
-	SetState(NextState);
-	NextState = EParticleState::Dead;
 }
 
 void AGOLParticle::SetMaterialForState()
@@ -99,5 +85,16 @@ void AGOLParticle::SetMaterialForState()
 
 void AGOLParticle::ScaleParticle(float Size)
 {
-	ParticleMesh->SetRelativeScale3D(FVector(Size, Size, 0.25f));
+	ParticleMesh->SetRelativeScale3D(FVector(Size, Size, Size));
+}
+
+void AGOLParticle::SetSimulator(AGOLSimulator* Sim)
+{
+	Simulator = Sim;
+}
+
+void AGOLParticle::SetCoordinates(int R, int C)
+{
+	Row = R;
+	Column = C;
 }
