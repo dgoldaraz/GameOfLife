@@ -61,8 +61,14 @@ public:
 
 	//Set Current State on the Particle
 	void SetState(EParticleState NewState);
+	bool IsAlive();
 
 	void SetCoordinates(int R, int C);
+	void GetCoordinates(int& R, int& C) const;
+
+	bool IsCalculated() const { return bCalculated; }
+	void SetCalculated(bool bCalc) { bCalculated = bCalc; }
+
 private:
 
 	//Gather all the resources and sets any intial values
@@ -74,6 +80,9 @@ private:
 	//Current Row/Column
 	int Row = 0;
 	int Column = 0;
+
+	//flag to establish if this particle has been calculated and decided or not. will tun false if we set the state
+	bool bCalculated = false;
 
 	//Current State of the particle
 	UPROPERTY(EditAnywhere, Category = Particle)

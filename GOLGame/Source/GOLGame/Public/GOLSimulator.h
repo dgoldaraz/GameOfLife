@@ -46,19 +46,32 @@ public:
 
 	// Percentage to decide the posibility to set a particle active on creation
 	UPROPERTY(EditAnywhere, Category = "Simulator", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
-	float CreationParticleActivePer= 0.3;
+	float CreationParticleActivePer= 0.1;
 
 	AGOLParticle* GetParticle(int Row, int Column);
 
 private:
 
 	//Check the Neighbours and particle to decide it's state
-	void ResolveParticle(const AGOLParticle* Particle);
+	void ResolveParticle(AGOLParticle* Particle);
 
 	//Main function that perform the GOL Simulation
 	void Iterate();
 
-	void SwapBuffers();
+	void FlushBuffer();
+
+	//Adds to the next generation of particles
+	void AddNextGeneration(AGOLParticle* Particle);
+
+	//Add the list of neighbours for a new alive particle
+	void AddNeighbours(const TArray<AGOLParticle*> Particles);
+
+	//Add the particles that are alive only
+	void AddOnlyAliveNeighbours(const TArray<AGOLParticle*> Particles);
+
+	// Function to calculate a bounded position for neighbours
+	// Will check based on the currentPos, which will be the first position and last. Will perform the calculations to not give negative or out bounded values, returning the correct value
+	void CalculateBoundedNeig(int& CurrentPos, int MaxPos);
 
 	/** Dummy root component */
 	UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -77,14 +90,12 @@ private:
 	//Array with all the particles created
 	TArray<AGOLParticle*> Particles;
 
-	//Primary Buffer for Alive Particles
-	TArray<AGOLParticle*> PrimaryBuffer;
+	//Save the possible alive particles that live one iteration, may have dead particles that will be removed at the end of the iteration
+	// Every particle on this buffer has a chance to be alive at the end of the iteration, unless the particle is added to the DeadBuffer
+	TArray<AGOLParticle*> PossibleAliveParticles;
 
-	//Secondary Buffer for Alive Particles
-	TArray<AGOLParticle*> SecondaryBuffer;
-
-	//Flag to choose Buffer
-	bool bUsePrimaryBuffer = true;
+	//Saves the Dead particles
+	TArray<AGOLParticle*> DeadParticles;
 
 	//TODO: Remove this fixed size, get correct size from Mesh?
 	//Particle Fixed Size

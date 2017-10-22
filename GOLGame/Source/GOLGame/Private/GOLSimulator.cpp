@@ -4,6 +4,7 @@
 #include "../Public/GOLSimulator.h"
 #include "../Public/GOLParticle.h"
 #include "Components/TextRenderComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "GAmeOfLife"
@@ -62,7 +63,7 @@ void AGOLSimulator::BeginPlay()
 				{
 					//Set Particle active
 					NewParticle->SetState(EParticleState::Alive);
-					PrimaryBuffer.Add(NewParticle);
+					PossibleAliveParticles.Add(NewParticle);
 				}
 				//Add to the array
 				Particles.Add(NewParticle);
@@ -92,22 +93,18 @@ void AGOLSimulator::Iterate()
 	// Update text
 	IterarionText->SetText(FText::Format(LOCTEXT("IterationFmt", "Iterations: {0}"), FText::AsNumber(NumberIterations)));
 
+	UE_LOG(LogTemp, Warning, TEXT("Iteration: %d"), NumberIterations);
+
 	// Resolve all the Alive Particles
-	if (bUsePrimaryBuffer)
+	int Lenght = PossibleAliveParticles.Num();
+	for (int i = 0; i < Lenght; i++)
 	{
-		for (const AGOLParticle* CurrentParticle : PrimaryBuffer)
-		{
-			ResolveParticle(CurrentParticle);
-		}
+		AGOLParticle* CurrentParticle = PossibleAliveParticles[i];
+		ResolveParticle(CurrentParticle);
+		//Update value as the array may change on resolve
+		Lenght = PossibleAliveParticles.Num();
 	}
-	else
-	{
-		for (const AGOLParticle* CurrentParticle : SecondaryBuffer)
-		{
-			ResolveParticle(CurrentParticle);
-		}
-	}
-	
+	FlushBuffer();
 }
 
 AGOLParticle* AGOLSimulator::GetParticle(int Row, int Column)
@@ -122,30 +119,156 @@ AGOLParticle* AGOLSimulator::GetParticle(int Row, int Column)
 	return nullptr;
 }
 
-void AGOLSimulator::ResolveParticle(const AGOLParticle* Particle)
+void AGOLSimulator::ResolveParticle(AGOLParticle* Particle)
 {
 	//Look through the neighbours, decide if the negighbours and the particle should stay on the next buffer
-}
-
-void AGOLSimulator::SwapBuffers()
-{
-	if (bUsePrimaryBuffer)
+	int R, C = 0;
+	Particle->GetCoordinates(R, C);
+	TArray<AGOLParticle*> ParticleNeigh;
+	int AliveNeigh = 0;
+	// go though all the neighbuours and count how many are active or not. If this particle is changing state, we add all the neighbours to the active list
+	int RInitPos = R - 1;
+	int CInitPos = C - 1;
+	for (int i = 0; i < 3; i++)
 	{
-		PrimaryBuffer.Empty();
-		for (AGOLParticle* Particle : SecondaryBuffer)
+		for (int j = 0; j < 3; j++)
 		{
-			Particle->SetState(EParticleState::Alive);
+			//Go each particle and check if is active or not, if we want the particle to 
+			//Get particle
+
+			int CurrentR = RInitPos + i;
+			int CurrentC = CInitPos + j;
+			//Make sure everything is in bounds
+			CalculateBoundedNeig(CurrentR, Rows);
+			CalculateBoundedNeig(CurrentC, Columns);
+
+			if (CurrentR == R && CurrentC == C)
+			{
+				//Same partcle, dont do anything
+				continue;
+			}
+
+			AGOLParticle* Neigbour = GetParticle(CurrentR, CurrentC);
+			if (Neigbour)
+			{
+				ParticleNeigh.Add(Neigbour);
+				if (Neigbour->IsAlive())
+				{
+					AliveNeigh++;
+					if (AliveNeigh > 3) // if we have more than 3 neighs alive we are going to be dead
+					{
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	//Check what we need to do
+	// if less than 2 alive neighbours : Dead
+	// if more than 3 : Dead
+	// if 2 or 3 : Alive
+	// if it was dead and exactly 3 : Alive
+
+	//If we change state, add the neighbours to the resolve list
+	if (!Particle->IsAlive())
+	{
+		if (AliveNeigh == 3)
+		{
+			//Return from dead by reproduction
+			//Add to the next generation AddNextGen()
+			//Add Neighs to the ResolveList, as they may change with the new state
+			AddNextGeneration(Particle);
+			AddNeighbours(ParticleNeigh);
+		}
+		else
+		{
+			//This particle shouldn't be on the aliveBuffer, so add to the dead particles
+			DeadParticles.Add(Particle);
 		}
 	}
 	else
 	{
-		SecondaryBuffer.Empty();
-		for (AGOLParticle* Particle : PrimaryBuffer)
+		if (AliveNeigh < 2 || AliveNeigh > 3)
 		{
-			Particle->SetState(EParticleState::Alive);
+			// Particle dies
+			// Don't add to nextGen
+			//Change State
+			// Add only Alive Neighs, at they may change when this particle die
+			DeadParticles.Add(Particle);
+			AddOnlyAliveNeighbours(ParticleNeigh);
+		}
+		else
+		{
+			//Add to next gen
+			//Add all the Neigburs to the possibleAlive buffer
+			AddNextGeneration(Particle);
+			AddNeighbours(ParticleNeigh);
 		}
 	}
 
-	bUsePrimaryBuffer = !bUsePrimaryBuffer;
+}
+
+void AGOLSimulator::CalculateBoundedNeig(int& CurrentPos, int MaxPos)
+{
+	if (CurrentPos < 0)
+	{
+		CurrentPos = MaxPos - 1;
+	}
+
+	if (CurrentPos > MaxPos)
+	{
+		CurrentPos = 0;
+	}
+}
+
+//Adds to the next generation of particles Alive
+void AGOLSimulator::AddNextGeneration(AGOLParticle* Particle)
+{
+	if (!PossibleAliveParticles.Contains(Particle))
+	{
+		PossibleAliveParticles.Add(Particle);
+	}
+}
+
+void AGOLSimulator::AddNeighbours(const TArray<AGOLParticle*> Particles)
+{
+	//Try to add to Alive buffer if the particle is not yet and is not set to be dead
+	for (AGOLParticle* CurrentParticle : Particles)
+	{
+		if (!PossibleAliveParticles.Contains(CurrentParticle) && !DeadParticles.Contains(CurrentParticle))
+		{
+			PossibleAliveParticles.Add(CurrentParticle);
+		}
+	}
+}
+
+void AGOLSimulator::AddOnlyAliveNeighbours(const TArray<AGOLParticle*> Particles)
+{
+	for (AGOLParticle* CurrentParticle : Particles)
+	{
+		if (!PossibleAliveParticles.Contains(CurrentParticle) && !DeadParticles.Contains(CurrentParticle) && CurrentParticle->IsAlive())
+		{
+			PossibleAliveParticles.Add(CurrentParticle);
+		}
+	}
+}
+
+void AGOLSimulator::FlushBuffer()
+{
+	//Remove dead particles
+	for (auto DeadParticle : DeadParticles)
+	{
+		DeadParticle->SetState(EParticleState::Dead);
+		PossibleAliveParticles.Remove(DeadParticle);
+	}
+
+	//Add alive particles
+	for (AGOLParticle* Particle : PossibleAliveParticles)
+	{
+		Particle->SetState(EParticleState::Alive);
+	}
+
+	DeadParticles.Empty();
 }
 

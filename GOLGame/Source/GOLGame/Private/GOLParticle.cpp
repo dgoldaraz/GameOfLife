@@ -64,6 +64,12 @@ void AGOLParticle::SetState(EParticleState NewState)
 		CurrentState = NewState;
 		SetMaterialForState();
 	}
+	bCalculated = false;
+}
+
+bool AGOLParticle::IsAlive()
+{
+	return CurrentState == EParticleState::Alive;
 }
 
 void AGOLParticle::SetMaterialForState()
@@ -97,4 +103,10 @@ void AGOLParticle::SetCoordinates(int R, int C)
 {
 	Row = R;
 	Column = C;
+}
+
+void AGOLParticle::GetCoordinates(int& R, int& C) const
+{
+	R = Row;
+	C = Column;
 }
