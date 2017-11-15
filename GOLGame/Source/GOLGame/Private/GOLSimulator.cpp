@@ -32,8 +32,22 @@ AGOLSimulator::AGOLSimulator()
 void AGOLSimulator::BeginPlay()
 {
 	Super::BeginPlay();
-	//IterarionText->SetRelativeLocation(FVector(0.0f, 2.0f, 0.0f));
+	ResetGrid(true);
+}
 
+void AGOLSimulator::ResetGrid(bool bRandomize)
+{
+
+	for (auto Particle : Particles)
+	{
+		//Delete Particles
+		delete Particle;
+	}
+
+	Particles.Empty();
+	PossibleAliveParticles.Empty();
+	DeadParticles.Empty();
+	
 	//Populate Particles 
 	float XOffset = 0.0f;
 	float YOffset = 0.0f;
@@ -59,7 +73,7 @@ void AGOLSimulator::BeginPlay()
 				NewParticle->AttachToActor(this, Rules);
 				NewParticle->ScaleParticle(NewSize);
 				NewParticle->SetCoordinates(i, j);
-				if (FMath::RandRange(0.0f, 1.0f) < CreationParticleActivePer)
+				if (bRandomize && FMath::RandRange(0.0f, 1.0f) < CreationParticleActivePer)
 				{
 					//Set Particle active
 					NewParticle->SetState(EParticleState::Alive);
@@ -77,11 +91,14 @@ void AGOLSimulator::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
-	AccumulateTime += DeltaTime;
-	if (AccumulateTime > SecondsForIteration)
+	if (!bPaused)
 	{
-		AccumulateTime = 0.0f;
-		Iterate();
+		AccumulateTime += DeltaTime;
+		if (AccumulateTime > SecondsForIteration)
+		{
+			AccumulateTime = 0.0f;
+			Iterate();
+		}
 	}
 }
 
@@ -272,3 +289,22 @@ void AGOLSimulator::FlushBuffer()
 	DeadParticles.Empty();
 }
 
+void AGOLSimulator::ChangeParticleState(AGOLParticle* Particle, bool bRemove)
+{
+	if (bRemove)
+	{
+		PossibleAliveParticles.Remove(Particle);
+		DeadParticles.Add(Particle);
+	}
+	else
+	{
+		PossibleAliveParticles.Add(Particle);
+		DeadParticles.Remove(Particle);
+	}
+}
+
+void AGOLSimulator::Reset(bool bRandomize)
+{
+	AccumulateTime = 0.0f;
+	ResetGrid(bRandomize);
+}

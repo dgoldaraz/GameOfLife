@@ -2,6 +2,7 @@
 
 #include "GOLGame.h"
 #include "../Public/GOLParticle.h"
+#include "../Public/GOLSimulator.h"
 
 // Sets default values
 AGOLParticle::AGOLParticle()
@@ -64,7 +65,6 @@ void AGOLParticle::SetState(EParticleState NewState)
 		CurrentState = NewState;
 		SetMaterialForState();
 	}
-	bCalculated = false;
 }
 
 bool AGOLParticle::IsAlive()
@@ -109,4 +109,22 @@ void AGOLParticle::GetCoordinates(int& R, int& C) const
 {
 	R = Row;
 	C = Column;
+}
+
+void AGOLParticle::BlockClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
+{
+	if (Simulator && Simulator->IsPaused())
+	{
+		if (IsAlive())
+		{
+			SetState(EParticleState::Dead);
+			Simulator->ChangeParticleState(this, true);
+		}
+		else
+		{
+			SetState(EParticleState::Alive);
+			Simulator->ChangeParticleState(this, false);
+		}
+	}
+	
 }

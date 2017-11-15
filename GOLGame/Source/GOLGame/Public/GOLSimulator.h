@@ -48,6 +48,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Simulator", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
 	float CreationParticleActivePer= 0.1;
 
+	UFUNCTION(BlueprintCallable, Category = "Simulator")
+	void PauseSimulation() { bPaused = true; }
+
+	UFUNCTION(BlueprintCallable, Category = "Simulator")
+	void PlaySimulation() { bPaused = false; }
+
+	UFUNCTION(BlueprintCallable, Category = "Simulator")
+	bool IsPaused() { return bPaused; }
+
+	UFUNCTION(BlueprintCallable, Category = "Simulator")
+	void Reset(bool bRandomize);
+
+	void ChangeParticleState(AGOLParticle* Particle, bool bRemove);
+
 	AGOLParticle* GetParticle(int Row, int Column);
 
 private:
@@ -72,6 +86,9 @@ private:
 	// Function to calculate a bounded position for neighbours
 	// Will check based on the currentPos, which will be the first position and last. Will perform the calculations to not give negative or out bounded values, returning the correct value
 	void CalculateBoundedNeig(int& CurrentPos, int MaxPos);
+
+	//Clean previous iteration and reset grid
+	void ResetGrid(bool bRandomize);
 
 	/** Dummy root component */
 	UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -100,5 +117,7 @@ private:
 	//TODO: Remove this fixed size, get correct size from Mesh?
 	//Particle Fixed Size
 	float ParticleMeshSize = 100.0f;
+
+	bool bPaused = false;
 
 };
