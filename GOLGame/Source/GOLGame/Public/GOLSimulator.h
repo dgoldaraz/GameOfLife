@@ -58,7 +58,7 @@ public:
 	bool IsPaused() { return bPaused; }
 
 	UFUNCTION(BlueprintCallable, Category = "Simulator")
-	void Reset(bool bRandomize);
+	void ResetSimulator(bool bRandomize);
 
 	void ChangeParticleState(AGOLParticle* Particle, bool bRemove);
 

@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-#include "GOLGame.h"
 #include "../Public/GOLParticle.h"
+#include "GOLGame.h"
 #include "../Public/GOLSimulator.h"
+#include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 
 // Sets default values
 AGOLParticle::AGOLParticle()
@@ -35,8 +35,8 @@ void AGOLParticle::Initialize()
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> DeadMaterial;
 		FConstructorStatics()
 			: ParticleMesh(TEXT("/Game/Puzzle/Meshes/ParticleSphere.ParticleSphere"))
-			, AliveMaterial(TEXT("/Game/Puzzle/Meshes/AliveMaterial.AliveMaterial"))
 			, DeadMaterial(TEXT("/Game/Puzzle/Meshes/DeadMaterial.DeadMaterial"))
+			, AliveMaterial(TEXT("/Game/Puzzle/Meshes/LiveMaterial.LiveMaterial"))
 		{
 		}
 	};

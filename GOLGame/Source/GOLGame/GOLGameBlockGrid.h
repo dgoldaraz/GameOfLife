@@ -1,5 +1,8 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
+
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GOLGameBlockGrid.generated.h"
 
@@ -31,14 +34,16 @@ public:
 	UPROPERTY(Category=Grid, EditAnywhere, BlueprintReadOnly)
 	float BlockSpacing;
 
+protected:
 	// Begin AActor interface
 	virtual void BeginPlay() override;
 	// End AActor interface
 
+public:
+
 	/** Handle the block being clicked */
 	void AddScore();
 
-public:
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
 	/** Returns ScoreText subobject **/

@@ -1,9 +1,9 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
-#include "GOLGame.h"
 #include "GOLGameBlockGrid.h"
 #include "GOLGameBlock.h"
 #include "Components/TextRenderComponent.h"
+#include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "PuzzleBlockGrid"
 
@@ -39,14 +39,14 @@ void AGOLGameBlockGrid::BeginPlay()
 		const float XOffset = (BlockIndex/Size) * BlockSpacing; // Divide by dimension
 		const float YOffset = (BlockIndex%Size) * BlockSpacing; // Modulo gives remainder
 
-		// Make postion vector, offset from Grid location
+		// Make position vector, offset from Grid location
 		const FVector BlockLocation = FVector(XOffset, YOffset, 0.f) + GetActorLocation();
 
 		// Spawn a block
 		AGOLGameBlock* NewBlock = GetWorld()->SpawnActor<AGOLGameBlock>(BlockLocation, FRotator(0,0,0));
 
 		// Tell the block about its owner
-		if(NewBlock != NULL)
+		if (NewBlock != nullptr)
 		{
 			NewBlock->OwningGrid = this;
 		}

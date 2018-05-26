@@ -1,8 +1,11 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
-#include "GOLGame.h"
 #include "GOLGameBlock.h"
 #include "GOLGameBlockGrid.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstance.h"
 
 AGOLGameBlock::AGOLGameBlock()
 {
@@ -10,10 +13,12 @@ AGOLGameBlock::AGOLGameBlock()
 	struct FConstructorStatics
 	{
 		ConstructorHelpers::FObjectFinderOptional<UStaticMesh> PlaneMesh;
+		ConstructorHelpers::FObjectFinderOptional<UMaterial> BaseMaterial;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> BlueMaterial;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> OrangeMaterial;
 		FConstructorStatics()
 			: PlaneMesh(TEXT("/Game/Puzzle/Meshes/PuzzleCube.PuzzleCube"))
+			, BaseMaterial(TEXT("/Game/Puzzle/Meshes/BaseMaterial.BaseMaterial"))
 			, BlueMaterial(TEXT("/Game/Puzzle/Meshes/BlueMaterial.BlueMaterial"))
 			, OrangeMaterial(TEXT("/Game/Puzzle/Meshes/OrangeMaterial.OrangeMaterial"))
 		{
@@ -36,13 +41,26 @@ AGOLGameBlock::AGOLGameBlock()
 	BlockMesh->OnInputTouchBegin.AddDynamic(this, &AGOLGameBlock::OnFingerPressedBlock);
 
 	// Save a pointer to the orange material
+	BaseMaterial = ConstructorStatics.BaseMaterial.Get();
+	BlueMaterial = ConstructorStatics.BlueMaterial.Get();
 	OrangeMaterial = ConstructorStatics.OrangeMaterial.Get();
 }
 
 void AGOLGameBlock::BlockClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
 {
+	HandleClicked();
+}
+
+
+void AGOLGameBlock::OnFingerPressedBlock(ETouchIndex::Type FingerIndex, UPrimitiveComponent* TouchedComponent)
+{
+	HandleClicked();
+}
+
+void AGOLGameBlock::HandleClicked()
+{
 	// Check we are not already active
-	if(!bIsActive)
+	if (!bIsActive)
 	{
 		bIsActive = true;
 
@@ -50,15 +68,27 @@ void AGOLGameBlock::BlockClicked(UPrimitiveComponent* ClickedComp, FKey ButtonCl
 		BlockMesh->SetMaterial(0, OrangeMaterial);
 
 		// Tell the Grid
-		if(OwningGrid != NULL)
+		if (OwningGrid != nullptr)
 		{
 			OwningGrid->AddScore();
 		}
 	}
 }
 
-
-void AGOLGameBlock::OnFingerPressedBlock(ETouchIndex::Type FingerIndex, UPrimitiveComponent* TouchedComponent)
+void AGOLGameBlock::Highlight(bool bOn)
 {
-	BlockClicked(TouchedComponent, EKeys::Invalid);
+	// Do not highlight if the block has already been activated.
+	if (bIsActive)
+	{
+		return;
+	}
+
+	if (bOn)
+	{
+		BlockMesh->SetMaterial(0, BaseMaterial);
+	}
+	else
+	{
+		BlockMesh->SetMaterial(0, BlueMaterial);
+	}
 }

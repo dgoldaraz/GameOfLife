@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "GOLGame.h"
 #include "../Public/GOLSimulator.h"
+#include "GOLGame.h"
 #include "../Public/GOLParticle.h"
 #include "Components/TextRenderComponent.h"
 #include "DrawDebugHelpers.h"
@@ -303,7 +303,7 @@ void AGOLSimulator::ChangeParticleState(AGOLParticle* Particle, bool bRemove)
 	}
 }
 
-void AGOLSimulator::Reset(bool bRandomize)
+void AGOLSimulator::ResetSimulator(bool bRandomize)
 {
 	AccumulateTime = 0.0f;
 	ResetGrid(bRandomize);
