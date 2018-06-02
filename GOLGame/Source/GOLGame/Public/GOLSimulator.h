@@ -25,15 +25,12 @@ public:
 	/** Returns DummyRoot subobject **/
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
 
-	/** Returns ScoreText subobject **/
-	FORCEINLINE class UTextRenderComponent* GetScoreText() const { return IterarionText; }
-
 	/** Number of Rows along each side of grid */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Simulator")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulator")
 	int32 Rows = 10;
 
 	/** Number of Columns along each side of grid */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Simulator")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulator")
 	int32 Columns = 10;
 
 	// Time to perfom a new Iteration on the Simulation
@@ -44,8 +41,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Simulator")
 	float ParticleSize = 10.0f;
 
+	// Size of each particle
+	UPROPERTY(EditAnywhere, Category = "Simulator")
+	float MinCameraHeight = 1.0f;
+
+	// Size of each particle
+	UPROPERTY(EditAnywhere, Category = "Simulator")
+	float MaxCameraHeight = 1000.0f;
+
+	// Size of each particle
+	UPROPERTY(EditAnywhere, Category = "Simulator")
+	AActor* SimCamera = nullptr;
+
 	// Percentage to decide the posibility to set a particle active on creation
-	UPROPERTY(EditAnywhere, Category = "Simulator", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulator", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
 	float CreationParticleActivePer= 0.1;
 
 	UFUNCTION(BlueprintCallable, Category = "Simulator")
@@ -59,6 +68,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Simulator")
 	void ResetSimulator(bool bRandomize);
+
+	//Function that will change the Camera Height based on the ratio passed. This ratio need to be between 0 and 1
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	void SetCameraHeight(float HeightRatio);
+
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	float GetIteration();
 
 	void ChangeParticleState(AGOLParticle* Particle, bool bRemove);
 
@@ -90,13 +106,11 @@ private:
 	//Clean previous iteration and reset grid
 	void ResetGrid(bool bRandomize);
 
+	void CenterCamera();
+
 	/** Dummy root component */
 	UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* DummyRoot;
-
-	/** Text component for the number of iterations */
-	UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UTextRenderComponent* IterarionText;
 
 	//Tick accumulate time
 	float AccumulateTime = 0.0f;
@@ -118,6 +132,6 @@ private:
 	//Particle Fixed Size
 	float ParticleMeshSize = 100.0f;
 
-	bool bPaused = false;
+	bool bPaused = true;
 
 };

@@ -55,7 +55,7 @@ void AGOLParticle::Initialize()
 	ParticleMesh->SetRelativeScale3D(FVector(1.f, 1.f, 1.0f));
 	ParticleMesh->SetRelativeLocation(FVector(0.f, 0.f, 25.f));
 	ParticleMesh->SetupAttachment(DummyRoot);
-	
+	ParticleMesh->OnClicked.AddUniqueDynamic(this, &AGOLParticle::ParticleClicked);
 }
 
 void AGOLParticle::SetState(EParticleState NewState)
@@ -111,7 +111,7 @@ void AGOLParticle::GetCoordinates(int& R, int& C) const
 	C = Column;
 }
 
-void AGOLParticle::BlockClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
+void AGOLParticle::ParticleClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
 {
 	if (Simulator && Simulator->IsPaused())
 	{

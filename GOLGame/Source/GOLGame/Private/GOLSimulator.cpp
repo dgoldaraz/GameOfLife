@@ -5,6 +5,7 @@
 #include "../Public/GOLParticle.h"
 #include "Components/TextRenderComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 
 #define LOCTEXT_NAMESPACE "GAmeOfLife"
@@ -19,29 +20,22 @@ AGOLSimulator::AGOLSimulator()
 	DummyRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Dummy0"));
 	RootComponent = DummyRoot;
 
-	// Create static mesh component
-	IterarionText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("Iterationtext0"));
-	IterarionText->SetRelativeLocation(FVector(200.0, 0.f, 0.f));
-	IterarionText->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
-	IterarionText->SetText(FText::Format(LOCTEXT("IterationFmt", "Iterations: {0}"), FText::AsNumber(0)));
-	IterarionText->SetupAttachment(DummyRoot);
-
 }
 
 // Called when the game starts or when spawned
 void AGOLSimulator::BeginPlay()
 {
 	Super::BeginPlay();
-	ResetGrid(true);
+
+	ResetGrid(false);
 }
 
 void AGOLSimulator::ResetGrid(bool bRandomize)
 {
-
 	for (auto Particle : Particles)
 	{
 		//Delete Particles
-		delete Particle;
+		Particle->Destroy();
 	}
 
 	Particles.Empty();
@@ -84,6 +78,7 @@ void AGOLSimulator::ResetGrid(bool bRandomize)
 			}
 		}
 	}
+	CenterCamera();
 }
 
 // Called every frame
@@ -91,7 +86,8 @@ void AGOLSimulator::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
-	if (!bPaused)
+	//If playing and some particles alive
+	if (!bPaused && PossibleAliveParticles.Num() > 0)
 	{
 		AccumulateTime += DeltaTime;
 		if (AccumulateTime > SecondsForIteration)
@@ -106,9 +102,6 @@ void AGOLSimulator::Iterate()
 {
 	//Increment Iterations
 	NumberIterations++;
-
-	// Update text
-	IterarionText->SetText(FText::Format(LOCTEXT("IterationFmt", "Iterations: {0}"), FText::AsNumber(NumberIterations)));
 
 	UE_LOG(LogTemp, Warning, TEXT("Iteration: %d"), NumberIterations);
 
@@ -307,4 +300,34 @@ void AGOLSimulator::ResetSimulator(bool bRandomize)
 {
 	AccumulateTime = 0.0f;
 	ResetGrid(bRandomize);
+}
+
+float AGOLSimulator::GetIteration()
+{
+	return NumberIterations;
+}
+
+void AGOLSimulator::SetCameraHeight(float HeightRatio)
+{
+	if (SimCamera)
+	{
+		//convert from range [0-1] to new Range [Min-Max]
+		// the NewValue will be => (((Value - 0) * (Max - Min) ) + Min)
+		float NewRange = MaxCameraHeight - MinCameraHeight;
+		float NewHeight = ((HeightRatio * NewRange)) + MinCameraHeight;
+		SimCamera->SetActorLocation(FVector(SimCamera->GetActorLocation().X, SimCamera->GetActorLocation().Y, NewHeight));
+	}
+}
+
+void AGOLSimulator::CenterCamera()
+{
+	//Update Camera position
+	if (SimCamera)
+	{
+		//Set camera on the X/Y position of the Grid
+		float NewSize = ParticleSize / ParticleMeshSize;
+		FVector NewCameraLocation = GetActorLocation() + FVector(Rows * 0.5f * ParticleSize, Columns * 0.5f * ParticleSize, MinCameraHeight);
+		NewCameraLocation.Z = SimCamera->GetActorLocation().Z;
+		SimCamera->SetActorLocation(NewCameraLocation);
+	}
 }

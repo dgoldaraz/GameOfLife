@@ -58,7 +58,7 @@ public:
 
 	/** Handle the block being clicked */
 	UFUNCTION()
-	void BlockClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked);
+	void ParticleClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked);
 
 	//This function Scales the Mesh of the particle by Size
 	void ScaleParticle(float Size);
