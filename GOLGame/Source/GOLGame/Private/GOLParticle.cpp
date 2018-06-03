@@ -32,11 +32,17 @@ void AGOLParticle::Initialize()
 	{
 		ConstructorHelpers::FObjectFinderOptional<UStaticMesh> ParticleMesh;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> AliveMaterial;
+		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> AliveMaterial2;
+		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> AliveMaterial3;
+		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> AliveMaterial4;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> DeadMaterial;
 		FConstructorStatics()
 			: ParticleMesh(TEXT("/Game/Puzzle/Meshes/ParticleSphere.ParticleSphere"))
 			, DeadMaterial(TEXT("/Game/Puzzle/Meshes/DeadMaterial.DeadMaterial"))
 			, AliveMaterial(TEXT("/Game/Puzzle/Meshes/LiveMaterial.LiveMaterial"))
+			, AliveMaterial2(TEXT("/Game/Puzzle/Meshes/LiveMaterial1.LiveMaterial1"))
+			, AliveMaterial3(TEXT("/Game/Puzzle/Meshes/LiveMaterial2.LiveMaterial2"))
+			, AliveMaterial4(TEXT("/Game/Puzzle/Meshes/LiveMaterial3.LiveMaterial3"))
 		{
 		}
 	};
@@ -50,6 +56,9 @@ void AGOLParticle::Initialize()
 	ParticleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ParticleMesh0"));
 	ParticleMesh->SetStaticMesh(ConstructorStatics.ParticleMesh.Get());
 	AliveMaterial = ConstructorStatics.AliveMaterial.Get();
+	AliveMaterial2 = ConstructorStatics.AliveMaterial2.Get();
+	AliveMaterial3 = ConstructorStatics.AliveMaterial3.Get();
+	AliveMaterial4 = ConstructorStatics.AliveMaterial4.Get();
 	DeadMaterial = ConstructorStatics.DeadMaterial.Get();
 	SetMaterialForState();
 	ParticleMesh->SetRelativeScale3D(FVector(1.f, 1.f, 1.0f));
@@ -58,11 +67,16 @@ void AGOLParticle::Initialize()
 	ParticleMesh->OnClicked.AddUniqueDynamic(this, &AGOLParticle::ParticleClicked);
 }
 
-void AGOLParticle::SetState(EParticleState NewState)
+void AGOLParticle::SetState(EParticleState NewState, bool bColourAge)
 {
 	if (NewState != CurrentState)
 	{
 		CurrentState = NewState;
+		SetMaterialForState();
+	}
+	else if (IsAlive() && bColourAge)
+	{
+		IterationsAlive++;
 		SetMaterialForState();
 	}
 }
@@ -78,11 +92,27 @@ void AGOLParticle::SetMaterialForState()
 	{
 	case EParticleState::Alive:
 	{
-		ParticleMesh->SetMaterial(0, AliveMaterial);
+		if (IterationsAlive == 0)
+		{
+			ParticleMesh->SetMaterial(0, AliveMaterial);
+		}
+		else if (IterationsAlive == 1)
+		{
+			ParticleMesh->SetMaterial(0, AliveMaterial2);
+		}
+		else if (IterationsAlive == 2)
+		{
+			ParticleMesh->SetMaterial(0, AliveMaterial3);
+		}
+		else if (IterationsAlive > 2)
+		{
+			ParticleMesh->SetMaterial(0, AliveMaterial4);
+		}
 		break;
 	}
 	default:
 	{
+		IterationsAlive = 0;
 		ParticleMesh->SetMaterial(0, DeadMaterial);
 		break;
 	}

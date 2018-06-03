@@ -53,6 +53,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Simulator")
 	AActor* SimCamera = nullptr;
 
+	// Flag to colour Age on particles
+	UPROPERTY(BlueprintReadWrite, Category = "Simulator")
+	bool bColourAge = false;
+
 	// Percentage to decide the posibility to set a particle active on creation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulator", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
 	float CreationParticleActivePer= 0.1;

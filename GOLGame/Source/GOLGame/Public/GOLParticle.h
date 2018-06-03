@@ -47,6 +47,15 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Game Of Life")
 	class UMaterialInstance* AliveMaterial;
+	
+	UPROPERTY(EditAnywhere, Category = "Game Of Life")
+	class UMaterialInstance* AliveMaterial2;
+	
+	UPROPERTY(EditAnywhere, Category = "Game Of Life")
+	class UMaterialInstance* AliveMaterial3;
+	
+	UPROPERTY(EditAnywhere, Category = "Game Of Life")
+	class UMaterialInstance* AliveMaterial4;
 
 	/** Dummy root component */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Particle)
@@ -64,7 +73,7 @@ public:
 	void ScaleParticle(float Size);
 
 	//Set Current State on the Particle
-	void SetState(EParticleState NewState);
+	void SetState(EParticleState NewState, bool bColourAge = false);
 	bool IsAlive();
 
 	void SetCoordinates(int R, int C);
@@ -87,4 +96,7 @@ private:
 	EParticleState CurrentState = EParticleState::Dead;
 
 	AGOLSimulator* Simulator = nullptr;
+
+	// Count of iterations where this particle has been alive
+	int IterationsAlive = 0;
 };

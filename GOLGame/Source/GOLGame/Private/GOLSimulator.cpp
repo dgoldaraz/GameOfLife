@@ -276,7 +276,7 @@ void AGOLSimulator::FlushBuffer()
 	//Add alive particles
 	for (AGOLParticle* Particle : PossibleAliveParticles)
 	{
-		Particle->SetState(EParticleState::Alive);
+		Particle->SetState(EParticleState::Alive, bColourAge);
 	}
 
 	DeadParticles.Empty();
@@ -300,6 +300,7 @@ void AGOLSimulator::ResetSimulator(bool bRandomize)
 {
 	AccumulateTime = 0.0f;
 	ResetGrid(bRandomize);
+	NumberIterations = 0;
 }
 
 float AGOLSimulator::GetIteration()
